@@ -1,14 +1,10 @@
 import React from "react";
 import useStore from "./store";
 import "./css/product.css";
+import CartItem from "./types/types";
 
 interface ProductProps {
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  };
+  product: CartItem;
 }
 
 const Product: React.FC<ProductProps> = ({ product }) => {
