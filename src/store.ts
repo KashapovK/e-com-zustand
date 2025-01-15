@@ -1,12 +1,5 @@
-// store.ts
 import { create } from "zustand/react";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
+import CartItem from "./types/types";
 
 interface StoreState {
   cart: CartItem[];
