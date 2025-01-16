@@ -1,16 +1,9 @@
 import { create } from "zustand/react";
-import CartItem from "./types/types";
-
-interface StoreState {
-  cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: string) => void;
-  increaseQuantity: (id: string) => void;
-  decreaseQuantity: (id: string) => void;
-}
+import { StoreState } from "./types/types";
 
 const useStore = create<StoreState>((set) => ({
   cart: [],
+  products: [],
   addToCart: (item) =>
     set((state) => {
       const existingItem = state.cart.find(
@@ -46,6 +39,7 @@ const useStore = create<StoreState>((set) => ({
           : item,
       ),
     })),
+  setProducts: (products) => set({ products }), // Установка продуктов в состояние
 }));
 
 export default useStore;
