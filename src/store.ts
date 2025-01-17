@@ -39,7 +39,7 @@ const useStore = create<StoreState>((set) => ({
           : item,
       ),
     })),
-  setProducts: (products) => set({ products }), // Установка продуктов в состояние
+  setProducts: (products) => set({ products }),
 }));
 
 export default useStore;
