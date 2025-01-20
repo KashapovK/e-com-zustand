@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import Product from "./product";
 import Cart from "./cart";
-
 import useStore from "./store";
 import products from "./mocks/products";
 import { CartItem } from "./types/types";
