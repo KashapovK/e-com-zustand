@@ -29,17 +29,19 @@ import XLSX from "xlsx";
 
     results.push({
       action: actionDescription,
-      renderTime: endTime - startTime,
+      renderTime: endTime - startTime - 500,
       memoryUsage: memoryAfter - memoryBefore,
+      memoryUsageBefore: memoryBefore,
+      memoryUsageAfter: memoryAfter,
     });
 
     console.log(
-      `${actionDescription} - Время рендеринга: ${endTime - startTime} мс`,
+      `${actionDescription} - Время рендеринга: ${endTime - startTime - 500} мс`,
     );
     console.log(`Используемая память: ${memoryAfter - memoryBefore} байт`);
   };
 
-  // Измерение времени рендеринга и добавление первого продукта в корзину несколько раз
+  // Измерение времени рендеринга и добавление случайных 10 продуктов в корзину
   const products = await page.$$(".product-card");
   if (products.length === 0) {
     console.error("Продукты не найдены!");
@@ -47,49 +49,63 @@ import XLSX from "xlsx";
     return;
   }
 
-  for (let i = 0; i < 5; i++) {
-    const addToCartButton = await products[0].$(".add-to-cart-button");
+  // Выбор случайных продуктов
+  const randomProducts = [];
+  for (let i = 0; i < 20; i++) {
+    const randomIndex = Math.floor(Math.random() * products.length);
+    randomProducts.push(products[randomIndex]);
+  }
+
+  for (const product of randomProducts) {
+    const addToCartButton = await product.$(".add-to-cart-button");
     await measurePerformance("Добавление продукта в корзину", async () => {
       await addToCartButton.click();
       await page.waitForNetworkIdle(100);
     });
   }
 
-  // Увеличение и уменьшение количества товара в корзине
   await page.waitForSelector(".cart-container");
   const cartItems = await page.$$(".cart-item");
 
   if (cartItems.length > 0) {
-    const increaseButton = await cartItems[0].$(
-      ".quantity-controls .quantity-button:nth-child(3)",
-    ); // Кнопка "+"
-    const decreaseButton = await cartItems[0].$(
-      ".quantity-controls .quantity-button:nth-child(1)",
-    ); // Кнопка "-"
+    for (let i = 0; i < cartItems.length; i++) {
+      const increaseButton = await cartItems[i].$(
+        ".quantity-controls .quantity-button:nth-child(3)",
+      ); // Кнопка "+"
 
-    for (let i = 0; i < 3; i++) {
-      await measurePerformance("Увеличение количества товара", async () => {
-        await increaseButton.click();
-        await page.waitForNetworkIdle(100);
-      });
+      for (let j = 0; j < 10; j++) {
+        await measurePerformance("Увеличение количества товара", async () => {
+          await increaseButton.click();
+          await page.waitForNetworkIdle(100);
+        });
+      }
     }
 
-    for (let i = 0; i < 2; i++) {
-      await measurePerformance("Уменьшение количества товара", async () => {
-        await decreaseButton.click();
-        await page.waitForNetworkIdle(100);
-      });
+    // Уменьшение количества каждого товара в корзине на 10
+    for (let i = 0; i < cartItems.length; i++) {
+      const decreaseButton = await cartItems[i].$(
+        ".quantity-controls .quantity-button:nth-child(1)",
+      ); // Кнопка "-"
+
+      for (let j = 0; j < 10; j++) {
+        await measurePerformance("Уменьшение количества товара", async () => {
+          await decreaseButton.click();
+          await page.waitForNetworkIdle(100);
+        });
+      }
     }
 
-    // Удаление товара из корзины
-    const removeButton = await cartItems[0].$(".remove-button");
-    if (removeButton) {
-      await measurePerformance("Удаление товара из корзины", async () => {
-        await removeButton.click();
-        await page.waitForNetworkIdle(100);
-      });
-    } else {
-      console.error("Кнопка удаления не найдена!");
+    // Удаление каждого товара из корзины
+    for (let i = 0; i < cartItems.length; i++) {
+      const removeButton = await cartItems[i].$(".remove-button");
+      if (removeButton) {
+        await measurePerformance("Удаление товара из корзины", async () => {
+          await removeButton.click();
+          await page.waitForNetworkIdle(100);
+        });
+      } else {
+        console.error("Кнопка удаления не найдена!");
+      }
     }
   } else {
     console.error(

@@ -9,6 +9,6 @@ const generateProducts = (count: number) => {
   }));
 };
 
-const products = generateProducts(50);
+const products = generateProducts(1000);
 
 export default products;
