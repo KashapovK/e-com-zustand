@@ -11,6 +11,10 @@ import XLSX from "xlsx";
 
   const results = [];
 
+  let totalMemoryUsage = 0;
+  let totalRenderTime = 0;
+  let operationCount = 0;
+
   // Функция для замера времени рендеринга и объема памяти
   const measurePerformance = async (actionDescription, action) => {
     const startTime = performance.now();
@@ -27,16 +31,31 @@ import XLSX from "xlsx";
       () => performance.memory.usedJSHeapSize,
     );
 
-    results.push({
-      action: actionDescription,
-      renderTime: endTime - startTime - 500,
-      memoryUsage: memoryAfter - memoryBefore,
-    });
+    let memoryUsage = memoryAfter - memoryBefore;
 
-    console.log(
-      `${actionDescription} - Время рендеринга: ${endTime - startTime - 500} мс`,
-    );
-    console.log(`Используемая память: ${memoryAfter - memoryBefore} байт`);
+    // Если использование памяти отрицательное, знак меняется на положительный
+    if (memoryUsage < 0) {
+      memoryUsage = -memoryUsage;
+    }
+
+    // Исключаю аномалии (число выбрано эмпирически по результатам экспериментов)
+    if (memoryUsage <= 750000) {
+      results.push({
+        action: actionDescription,
+        renderTime: endTime - startTime - 500,
+        memoryUsage: memoryUsage,
+      });
+
+      // Накопление сумм
+      totalMemoryUsage += memoryUsage;
+      totalRenderTime += endTime - startTime - 500;
+      operationCount++;
+
+      console.log(
+        `${actionDescription} - Время рендеринга: ${endTime - startTime - 500} мс`,
+      );
+      console.log(`Используемая память: ${memoryUsage} байт`);
+    }
   };
 
   // Измерение времени рендеринга и добавление случайных 10 продуктов в корзину
@@ -112,7 +131,28 @@ import XLSX from "xlsx";
   }
 
   const workbook = XLSX.utils.book_new();
-  const worksheet = XLSX.utils.json_to_sheet(results);
+  const averageMemoryUsage = totalMemoryUsage / operationCount;
+  const averageRenderTime = totalRenderTime / operationCount;
+
+  // Создание данных для записи в Excel
+  const excelData = [
+    [
+      "Описание операции",
+      "Время рендеринга (мс)",
+      "Используемая память (байт)",
+    ],
+    ...results.map((result) => [
+      result.action,
+      result.renderTime,
+      result.memoryUsage,
+    ]),
+    ["Средние значения", averageRenderTime, averageMemoryUsage],
+  ];
+
+  // Создание рабочей книги и листа
+
+  const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
   XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
 
   XLSX.writeFile(workbook, "performance_results.xlsx");
