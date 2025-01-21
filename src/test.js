@@ -31,8 +31,6 @@ import XLSX from "xlsx";
       action: actionDescription,
       renderTime: endTime - startTime - 500,
       memoryUsage: memoryAfter - memoryBefore,
-      memoryUsageBefore: memoryBefore,
-      memoryUsageAfter: memoryAfter,
     });
 
     console.log(
