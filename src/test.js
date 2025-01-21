@@ -7,13 +7,10 @@ import XLSX from "xlsx";
   const timeout = 3000;
   page.setDefaultTimeout(timeout);
 
-  await page.goto("http://localhost:5173");
-
-  const results = [];
-
   let totalMemoryUsage = 0;
   let totalRenderTime = 0;
   let operationCount = 0;
+  const allResults = [];
 
   // Функция для замера времени рендеринга и объема памяти
   const measurePerformance = async (actionDescription, action) => {
@@ -40,122 +37,184 @@ import XLSX from "xlsx";
 
     // Исключаю аномалии (число выбрано эмпирически по результатам экспериментов)
     if (memoryUsage <= 750000) {
-      results.push({
-        action: actionDescription,
+      return {
         renderTime: endTime - startTime - 500,
         memoryUsage: memoryUsage,
-      });
-
-      // Накопление сумм
-      totalMemoryUsage += memoryUsage;
-      totalRenderTime += endTime - startTime - 500;
-      operationCount++;
-
-      console.log(
-        `${actionDescription} - Время рендеринга: ${endTime - startTime - 500} мс`,
-      );
-      console.log(`Используемая память: ${memoryUsage} байт`);
+      };
+    } else {
+      return null;
     }
   };
 
-  // Измерение времени рендеринга и добавление случайных 10 продуктов в корзину
-  const products = await page.$$(".product-card");
-  if (products.length === 0) {
-    console.error("Продукты не найдены!");
-    await browser.close();
-    return;
-  }
+  for (let testRun = 1; testRun <= 10; testRun++) {
+    console.log(`Запуск теста ${testRun}...`);
 
-  // Выбор случайных продуктов
-  const randomProducts = [];
-  for (let i = 0; i < 20; i++) {
-    const randomIndex = Math.floor(Math.random() * products.length);
-    randomProducts.push(products[randomIndex]);
-  }
+    await page.goto("http://localhost:5173");
 
-  for (const product of randomProducts) {
-    const addToCartButton = await product.$(".add-to-cart-button");
-    await measurePerformance("Добавление продукта в корзину", async () => {
-      await addToCartButton.click();
-      await page.waitForNetworkIdle(100);
-    });
-  }
+    const results = [];
 
-  await page.waitForSelector(".cart-container");
-  const cartItems = await page.$$(".cart-item");
+    // Измерение времени рендеринга и добавление случайных 10 продуктов в корзину
+    const products = await page.$$(".product-card");
+    if (products.length === 0) {
+      console.error("Продукты не найдены!");
+      await browser.close();
+      return;
+    }
 
-  if (cartItems.length > 0) {
-    for (let i = 0; i < cartItems.length; i++) {
-      const increaseButton = await cartItems[i].$(
-        ".quantity-controls .quantity-button:nth-child(3)",
-      ); // Кнопка "+"
+    // Выбор случайных продуктов
+    const randomProducts = [];
+    for (let i = 0; i < 20; i++) {
+      const randomIndex = Math.floor(Math.random() * products.length);
+      randomProducts.push(products[randomIndex]);
+    }
 
-      for (let j = 0; j < 10; j++) {
-        await measurePerformance("Увеличение количества товара", async () => {
-          await increaseButton.click();
+    for (const product of randomProducts) {
+      const addToCartButton = await product.$(".add-to-cart-button");
+      const performanceResult = await measurePerformance(
+        "Добавление продукта в корзину",
+        async () => {
+          await addToCartButton.click();
           await page.waitForNetworkIdle(100);
+        },
+      );
+
+      if (performanceResult) {
+        results.push({
+          action: "Добавление продукта в корзину",
+          renderTime: performanceResult.renderTime,
+          memoryUsage: performanceResult.memoryUsage,
         });
+
+        totalMemoryUsage += performanceResult.memoryUsage;
+        totalRenderTime += performanceResult.renderTime;
+        operationCount++;
       }
     }
 
-    // Уменьшение количества каждого товара в корзине на 10
-    for (let i = 0; i < cartItems.length; i++) {
-      const decreaseButton = await cartItems[i].$(
-        ".quantity-controls .quantity-button:nth-child(1)",
-      ); // Кнопка "-"
+    await page.waitForSelector(".cart-container");
+    const cartItems = await page.$$(".cart-item");
 
-      for (let j = 0; j < 10; j++) {
-        await measurePerformance("Уменьшение количества товара", async () => {
-          await decreaseButton.click();
-          await page.waitForNetworkIdle(100);
-        });
+    if (cartItems.length > 0) {
+      for (let i = 0; i < cartItems.length; i++) {
+        const increaseButton = await cartItems[i].$(
+          ".quantity-controls .quantity-button:nth-child(3)",
+        ); // Кнопка "+"
+
+        for (let j = 0; j < 10; j++) {
+          const performanceResult = await measurePerformance(
+            "Увеличение количества товара",
+            async () => {
+              await increaseButton.click();
+              await page.waitForNetworkIdle(100);
+            },
+          );
+
+          if (performanceResult) {
+            results.push({
+              action: "Увеличение количества товара",
+              renderTime: performanceResult.renderTime,
+              memoryUsage: performanceResult.memoryUsage,
+            });
+
+            totalMemoryUsage += performanceResult.memoryUsage;
+            totalRenderTime += performanceResult.renderTime;
+            operationCount++;
+          }
+        }
       }
+
+      // Уменьшение количества каждого товара в корзине на 10
+      for (let i = 0; i < cartItems.length; i++) {
+        const decreaseButton = await cartItems[i].$(
+          ".quantity-controls .quantity-button:nth-child(1)",
+        ); // Кнопка "-"
+
+        for (let j = 0; j < 10; j++) {
+          const performanceResult = await measurePerformance(
+            "Уменьшение количества товара",
+            async () => {
+              await decreaseButton.click();
+              await page.waitForNetworkIdle(100);
+            },
+          );
+
+          if (performanceResult) {
+            results.push({
+              action: "Уменьшение количества товара",
+              renderTime: performanceResult.renderTime,
+              memoryUsage: performanceResult.memoryUsage,
+            });
+
+            totalMemoryUsage += performanceResult.memoryUsage;
+            totalRenderTime += performanceResult.renderTime;
+            operationCount++;
+          }
+        }
+      }
+
+      // Удаление каждого товара из корзины
+      for (let i = 0; i < cartItems.length; i++) {
+        const removeButton = await cartItems[i].$(".remove-button");
+        if (removeButton) {
+          const performanceResult = await measurePerformance(
+            "Удаление товара из корзины",
+            async () => {
+              await removeButton.click();
+              await page.waitForNetworkIdle(100);
+            },
+          );
+
+          if (performanceResult) {
+            results.push({
+              action: "Удаление товара из корзины",
+              renderTime: performanceResult.renderTime,
+              memoryUsage: performanceResult.memoryUsage,
+            });
+
+            totalMemoryUsage += performanceResult.memoryUsage;
+            totalRenderTime += performanceResult.renderTime;
+            operationCount++;
+          }
+        } else {
+          console.error("Кнопка удаления не найдена!");
+        }
+      }
+    } else {
+      console.error(
+        "Корзина пуста, товары не найдены для изменения количества или удаления.",
+      );
     }
 
-    // Удаление каждого товара из корзины
-    for (let i = 0; i < cartItems.length; i++) {
-      const removeButton = await cartItems[i].$(".remove-button");
-      if (removeButton) {
-        await measurePerformance("Удаление товара из корзины", async () => {
-          await removeButton.click();
-          await page.waitForNetworkIdle(100);
-        });
-      } else {
-        console.error("Кнопка удаления не найдена!");
-      }
-    }
-  } else {
-    console.error(
-      "Корзина пуста, товары не найдены для изменения количества или удаления.",
-    );
+    allResults.push(...results); // Сохранение результатов текущего теста
   }
 
-  const workbook = XLSX.utils.book_new();
-  const averageMemoryUsage = totalMemoryUsage / operationCount;
-  const averageRenderTime = totalRenderTime / operationCount;
+  // Запись результатов в Excel после всех тестов
+  if (operationCount > 0) {
+    const averageMemoryUsage = totalMemoryUsage / operationCount;
+    const averageRenderTime = totalRenderTime / operationCount;
 
-  // Создание данных для записи в Excel
-  const excelData = [
-    [
-      "Описание операции",
-      "Время рендеринга (мс)",
-      "Используемая память (байт)",
-    ],
-    ...results.map((result) => [
-      result.action,
-      result.renderTime,
-      result.memoryUsage,
-    ]),
-    ["Средние значения", averageRenderTime, averageMemoryUsage],
-  ];
+    // Создание данных для записи в Excel
+    const excelData = [
+      [
+        "Описание операции",
+        "Время рендеринга (мс)",
+        "Используемая память (байт)",
+      ],
+      ...allResults.map((result) => [
+        result.action,
+        result.renderTime,
+        result.memoryUsage,
+      ]),
+      ["Средние значения", averageRenderTime, averageMemoryUsage],
+    ];
 
-  // Создание рабочей книги и листа
+    // Создание рабочей книги и листа
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
-  const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
 
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
-
-  XLSX.writeFile(workbook, "performance_results.xlsx");
-
+    XLSX.writeFile(workbook, "performance_results.xlsx");
+  }
   await browser.close();
 })();
