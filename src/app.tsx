@@ -3,7 +3,7 @@ import Product from "./product";
 import Cart from "./cart";
 import useStore from "./store";
 import products from "./mocks/products";
-import { CartItem } from "./types/types";
+import { CartItem } from "./types";
 
 const App: React.FC = () => {
   const setProducts = useStore((state) => state.setProducts);

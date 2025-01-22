@@ -1,5 +1,5 @@
 import { create } from "zustand/react";
-import { StoreState } from "./types/types";
+import { StoreState } from "./types";
 
 const useStore = create<StoreState>((set) => ({
   cart: [],
