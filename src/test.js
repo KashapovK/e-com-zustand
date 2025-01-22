@@ -11,6 +11,8 @@ import XLSX from "xlsx";
   let totalRenderTime = 0;
   let operationCount = 0;
   const allResults = [];
+  let minMemoryUsage = Infinity;
+  let maxMemoryUsage = 0;
 
   // Функция для замера времени рендеринга и объема памяти
   const measurePerformance = async (actionDescription, action) => {
@@ -35,15 +37,14 @@ import XLSX from "xlsx";
       memoryUsage = -memoryUsage;
     }
 
-    // Исключаю аномалии (число выбрано эмпирически по результатам экспериментов)
-    if (memoryUsage <= 750000) {
-      return {
-        renderTime: endTime - startTime - 500,
-        memoryUsage: memoryUsage,
-      };
-    } else {
-      return null;
+    if (memoryAfter < minMemoryUsage) {
+      minMemoryUsage = memoryAfter;
     }
+    if (memoryAfter > maxMemoryUsage) {
+      maxMemoryUsage = memoryAfter;
+    }
+
+    return { renderTime: endTime - startTime - 500, memoryUsage };
   };
 
   for (let testRun = 1; testRun <= 10; testRun++) {
@@ -62,32 +63,34 @@ import XLSX from "xlsx";
     }
 
     // Выбор случайных продуктов
-    const randomProducts = [];
-    for (let i = 0; i < 20; i++) {
+    const uniqueProducts = new Set();
+    while (uniqueProducts.size < 10) {
       const randomIndex = Math.floor(Math.random() * products.length);
-      randomProducts.push(products[randomIndex]);
+      uniqueProducts.add(products[randomIndex]);
     }
 
-    for (const product of randomProducts) {
+    for (const product of uniqueProducts) {
       const addToCartButton = await product.$(".add-to-cart-button");
-      const performanceResult = await measurePerformance(
-        "Добавление продукта в корзину",
-        async () => {
-          await addToCartButton.click();
-          await page.waitForNetworkIdle(100);
-        },
-      );
+      for (let i = 0; i < 1; i++) {
+        const performanceResult = await measurePerformance(
+          "Добавление продукта в корзину",
+          async () => {
+            await addToCartButton.click();
+            await page.waitForNetworkIdle(100);
+          },
+        );
 
-      if (performanceResult) {
-        results.push({
-          action: "Добавление продукта в корзину",
-          renderTime: performanceResult.renderTime,
-          memoryUsage: performanceResult.memoryUsage,
-        });
+        if (performanceResult) {
+          results.push({
+            action: "Добавление продукта в корзину",
+            renderTime: performanceResult.renderTime,
+            memoryUsage: performanceResult.memoryUsage,
+          });
 
-        totalMemoryUsage += performanceResult.memoryUsage;
-        totalRenderTime += performanceResult.renderTime;
-        operationCount++;
+          totalMemoryUsage += performanceResult.memoryUsage;
+          totalRenderTime += performanceResult.renderTime;
+          operationCount++;
+        }
       }
     }
 
@@ -206,6 +209,8 @@ import XLSX from "xlsx";
         result.memoryUsage,
       ]),
       ["Средние значения", averageRenderTime, averageMemoryUsage],
+      ["Наименьшее использование памяти", minMemoryUsage],
+      ["Наибольшее использование памяти", maxMemoryUsage],
     ];
 
     // Создание рабочей книги и листа
@@ -213,8 +218,8 @@ import XLSX from "xlsx";
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
-
     XLSX.writeFile(workbook, "performance_results.xlsx");
   }
+
   await browser.close();
 })();
