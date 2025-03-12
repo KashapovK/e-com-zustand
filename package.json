@@ -1,5 +1,5 @@
 {
-  "name": "state-managers-react",
+  "name": "zustand",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
     "react": "18.3.1",
@@ -17,18 +21,25 @@
   "devDependencies": {
     "@eslint/js": "9.17.0",
     "@faker-js/faker": "9.4.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "@vitejs/plugin-react": "4.3.4",
+    "@vitest/ui": "^3.0.8",
+    "cypress": "^14.1.0",
     "eslint": "9.17.0",
     "eslint-plugin-react-hooks": "5.0.0",
     "eslint-plugin-react-refresh": "0.4.16",
     "globals": "15.14.0",
+    "jsdom": "^21.1.0",
+    "prettier": "^3.5.3",
     "puppeteer": "24.1.0",
     "typescript": "5.6.2",
     "typescript-eslint": "8.18.2",
-    "vite": "6.0.5",
     "uuid": "11.0.5",
+    "vite": "6.0.5",
+    "vitest": "^3.0.7",
     "xlsx": "0.18.5"
   }
 }

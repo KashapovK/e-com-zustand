@@ -1,6 +1,6 @@
-import React from "react";
-import useStore from "./store";
-import "./css/cart.css";
+import React from 'react';
+import useStore from './store';
+import './css/cart.css';
 
 const Cart: React.FC = () => {
   const cart = useStore((state) => state.cart);

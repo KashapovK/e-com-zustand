@@ -1,5 +1,5 @@
-import { fakerRU as faker } from "@faker-js/faker";
-import { v4 as uuidv4 } from "uuid";
+import { fakerRU as faker } from '@faker-js/faker';
+import { v4 as uuidv4 } from 'uuid';
 
 const generateProducts = (count: number) => {
   return Array.from({ length: count }, () => ({
