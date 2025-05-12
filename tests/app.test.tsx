@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { assert } from 'chai';
 import App from '../src/app';
 import useStore from '../src/store';
 
@@ -16,12 +17,10 @@ describe('App Component (Zustand)', () => {
   test('рендерит карточки продуктов после загрузки продуктов', async () => {
     render(<App />);
 
-    expect(screen.getByText(/Интернет-магазин/i)).toBeInTheDocument();
+    assert.exists(screen.getByText(/Интернет-магазин/i));
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Добавить в корзину/i).length).toBeGreaterThan(
-        0,
-      );
+      assert.isAbove(screen.getAllByText(/Добавить в корзину/i).length, 0);
     });
   });
 });

@@ -34,3 +34,10 @@ jobs:
           build: npm run build
           start: npm run preview -- --port=4173
           wait-on: 'http://localhost:4173'
+  deploy:
+    needs: [check]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        run: curl -X POST ${{ secrets.ZUSTAND_DEPLOY_HOOK }}

@@ -14,7 +14,7 @@ describe('Функционал Zustand стора', () => {
 
     useStore.getState().setProducts(products);
 
-    expect(useStore.getState().products).toEqual(products);
+    expect(useStore.getState().products).to.deep.equal(products);
   });
 
   test('addToCart добавляет товар в корзину', () => {
@@ -27,7 +27,7 @@ describe('Функционал Zustand стора', () => {
 
     useStore.getState().addToCart(product);
 
-    expect(useStore.getState().cart).toEqual([product]);
+    expect(useStore.getState().cart).to.deep.equal([product]);
   });
 
   test('addToCart увеличивает количество, если товар уже есть в корзине', () => {
@@ -41,7 +41,7 @@ describe('Функционал Zustand стора', () => {
     useStore.setState({ cart: [product] });
     useStore.getState().addToCart(product);
 
-    expect(useStore.getState().cart[0].quantity).toBe(2);
+    expect(useStore.getState().cart[0].quantity).to.equal(2);
   });
 
   test('increaseQuantity увеличивает количество товара', () => {
@@ -55,7 +55,7 @@ describe('Функционал Zustand стора', () => {
     useStore.setState({ cart: [product] });
     useStore.getState().increaseQuantity(product.id);
 
-    expect(useStore.getState().cart[0].quantity).toBe(2);
+    expect(useStore.getState().cart[0].quantity).to.equal(2);
   });
 
   test('decreaseQuantity уменьшает количество товара', () => {
@@ -69,7 +69,7 @@ describe('Функционал Zustand стора', () => {
     useStore.setState({ cart: [product] });
     useStore.getState().decreaseQuantity(product.id);
 
-    expect(useStore.getState().cart[0].quantity).toBe(1);
+    expect(useStore.getState().cart[0].quantity).to.equal(1);
   });
 
   test('decreaseQuantity не уменьшает количество ниже 1', () => {
@@ -83,7 +83,7 @@ describe('Функционал Zustand стора', () => {
     useStore.setState({ cart: [product] });
     useStore.getState().decreaseQuantity(product.id);
 
-    expect(useStore.getState().cart[0].quantity).toBe(1);
+    expect(useStore.getState().cart[0].quantity).to.equal(1);
   });
 
   test('removeFromCart удаляет товар из корзины', () => {
@@ -97,6 +97,6 @@ describe('Функционал Zustand стора', () => {
     useStore.setState({ cart: [product] });
     useStore.getState().removeFromCart(product.id);
 
-    expect(useStore.getState().cart).toEqual([]);
+    expect(useStore.getState().cart).to.deep.equal([]);
   });
 });
